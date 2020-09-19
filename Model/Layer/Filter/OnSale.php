@@ -34,6 +34,10 @@ class OnSale extends AbstractFilter {
         $this->_requestVar = 'on_sale';
     }
 
+    /**
+     * Get Filter Name
+     * @return mixed
+     */
     public function getName()
     {
         return __('On Sale');
@@ -63,6 +67,11 @@ class OnSale extends AbstractFilter {
         return $this->itemDataBuilder->build();
     }
 
+    /**
+     * Filter the category collection to have only products on sale
+     * @param  Magento\Catalog\Model\Resource\Model\Product\Collection $collection
+     * @return Magento\Catalog\Model\Resource\Model\Product\Collection
+     */
     private function filterCollectionBySaleItems(\Magento\Catalog\Model\ResourceModel\Product\Collection $collection)
     {
         $collection->getSelect()->where('price_index.final_price > 0 && price_index.final_price < price_index.price');

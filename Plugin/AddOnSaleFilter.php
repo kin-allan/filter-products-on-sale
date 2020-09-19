@@ -16,7 +16,10 @@ class AddOnSaleFilter {
      */
     private $loadedModel;
 
-
+    /**
+     * Constructor.
+     * @param ObjectManagerInterface $objectManager [description]
+     */
     public function __construct(
         ObjectManagerInterface $objectManager
     ) {
