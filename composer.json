@@ -1,0 +1,26 @@
+{
+    "name" : "kin-allan/filter-products-on-sale",
+    "description": "This module enable the the option to filter only products with discount on the category page.",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "authors": [
+        {
+            "name": "Allan B. Santos",
+            "email": "allan.itcom@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "magento/module-catalog": "~103.0.5"
+    },
+    "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+            "TechNimbus\\CategoryOnSaleFilter\\" : ""
+        }
+    }
+}
