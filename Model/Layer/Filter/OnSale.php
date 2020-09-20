@@ -7,6 +7,11 @@ use Magento\Catalog\Model\Layer\Filter\AbstractFilter;
 class OnSale extends AbstractFilter {
 
     /**
+     * @var \Magento\Framework\App\ResourceConnection
+     */
+    protected $resourceConnection;
+
+    /**
      * Constructor
      *
      * @param \Magento\Catalog\Model\Layer\Filter\ItemFactory $filterItemFactory
@@ -21,6 +26,7 @@ class OnSale extends AbstractFilter {
          \Magento\Store\Model\StoreManagerInterface $storeManager,
          \Magento\Catalog\Model\Layer $layer,
          \Magento\Catalog\Model\Layer\Filter\Item\DataBuilder $itemDataBuilder,
+         \Magento\Framework\App\ResourceConnection $resourceConnection,
          array $data = []
      ) {
         parent::__construct(
@@ -30,12 +36,12 @@ class OnSale extends AbstractFilter {
             $itemDataBuilder,
             $data
         );
-
+        $this->resourceConnection = $resourceConnection;
         $this->_requestVar = 'on_sale';
     }
 
     /**
-     * Get Filter Name
+     * Get filter name
      * @return mixed
      */
     public function getName()
@@ -49,8 +55,11 @@ class OnSale extends AbstractFilter {
     public function apply(\Magento\Framework\App\RequestInterface $request)
     {
         if ($request->getParam($this->getRequestVar())) {
-            $collection = $this->getLayer()->getProductCollection();
-            $this->filterCollectionBySaleItems($collection);
+            $this->getLayer()
+                ->getProductCollection()
+                ->getSelect()
+                ->where('price_index.final_price > 0 && price_index.final_price < price_index.price');
+
             $this->getLayer()->getState()->addFilter($this->_createItem('On Sale', 1));
         }
 
@@ -62,20 +71,31 @@ class OnSale extends AbstractFilter {
      */
     protected function _getItemsData()
     {
-        $collection = $this->filterCollectionBySaleItems($this->getLayer()->getProductCollection());
-        $this->itemDataBuilder->addItemData(__('On Sale'), true, $collection->count());
+        $this->itemDataBuilder->addItemData(
+            __('On Sale'),
+            true,
+            $this->getOnSalesCount($this->getLayer()->getProductCollection())
+        );
         return $this->itemDataBuilder->build();
     }
 
     /**
-     * Filter the category collection to have only products on sale
-     * @param  Magento\Catalog\Model\Resource\Model\Product\Collection $collection
-     * @return Magento\Catalog\Model\Resource\Model\Product\Collection
+     * Get count of how many products are in sale on the currenct filter
+     * @param  \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @return interger
      */
-    private function filterCollectionBySaleItems(\Magento\Catalog\Model\ResourceModel\Product\Collection $collection)
+    private function getOnSalesCount(\Magento\Catalog\Model\ResourceModel\Product\Collection $collection)
     {
-        $collection->getSelect()->where('price_index.final_price > 0 && price_index.final_price < price_index.price');
-        $collection->clear();
-        return $collection;
+        $select = clone $collection->getSelect();
+        $select->reset(\Magento\Framework\DB\Select::COLUMNS);
+        $select->reset(\Magento\Framework\DB\Select::ORDER);
+        $select->reset(\Magento\Framework\DB\Select::LIMIT_COUNT);
+        $select->reset(\Magento\Framework\DB\Select::LIMIT_OFFSET);
+        $select->columns('count(*) as count');
+        $select->where('price_index.final_price > 0 && price_index.final_price < price_index.price');
+
+        $connection = $this->resourceConnection->getConnection();
+        $result = $connection->fetchAll($select);
+        return $result[0]['count'];
     }
 }
