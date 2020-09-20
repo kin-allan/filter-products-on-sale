@@ -82,7 +82,7 @@ class OnSale extends AbstractFilter {
     /**
      * Get count of how many products are in sale on the currenct filter
      * @param  \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
-     * @return interger
+     * @return integer
      */
     private function getOnSalesCount(\Magento\Catalog\Model\ResourceModel\Product\Collection $collection)
     {
